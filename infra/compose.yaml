@@ -1,0 +1,28 @@
+services:
+  api:
+    build:
+      context: ../apps/api
+    ports:
+      - "8000:8000"
+
+  web:
+    build:
+      context: ../apps/web
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: risk_manager
+      POSTGRES_USER: risk_manager
+      POSTGRES_PASSWORD: risk_manager
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

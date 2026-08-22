@@ -1,4 +1,12 @@
+import os
+import tempfile
+
 from fastapi.testclient import TestClient
+
+_tmp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+_tmp_db.close()
+os.environ["DATABASE_URL"] = f"sqlite:///{_tmp_db.name}"
+os.environ["APP_ENV"] = "test"
 
 from app.main import app
 
@@ -151,3 +159,51 @@ def test_mock_agent_returns_evidence_bounded_recommendation() -> None:
         "policy",
     }
     assert result["limitations"]
+
+
+def test_cors_allows_localhost_dev_ports() -> None:
+    with TestClient(app) as client:
+        response = client.options(
+            "/api/v1/transactions",
+            headers={
+                "Origin": "http://localhost:5174",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "http://localhost:5174"
+    assert "POST" in response.headers.get("access-control-allow-methods", "")
+
+
+def test_cors_rejects_non_localhost_origins() -> None:
+    with TestClient(app) as client:
+        response = client.options(
+            "/api/v1/transactions",
+            headers={
+                "Origin": "https://evil.example",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+    assert response.status_code == 400
+    assert "access-control-allow-origin" not in response.headers
+
+
+def test_database_initialisation_does_not_drop_existing_tables(monkeypatch) -> None:
+    from app.db import database as db_module
+
+    def fail_drop(*args, **kwargs):
+        raise AssertionError("drop_all should not run during initialise_database")
+
+    monkeypatch.setattr(db_module.Base.metadata, "drop_all", fail_drop)
+    called = {"create": False}
+
+    def record_create(*args, **kwargs):
+        called["create"] = True
+
+    monkeypatch.setattr(db_module.Base.metadata, "create_all", record_create)
+    db_module.initialise_database()
+
+    assert called["create"] is True

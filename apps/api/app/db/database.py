@@ -25,15 +25,11 @@ def get_db_session() -> Generator[Session, None, None]:
 
 
 def initialise_database() -> None:
-    """(Re)create development tables; production deployments should use Alembic migrations.
+    """Create any missing tables without destroying existing data.
 
-    This routine drops existing tables then recreates them to ensure a clean
-    schema on each application startup (suitable for local development and
-    tests where a fresh database is expected).
+    Local development may start against an already-populated database; startup
+    should therefore be additive and migration-safe rather than destructive.
     """
     from app.db import models  # noqa: F401
 
-    # Ensure a clean schema on startup to avoid leftover test data causing unique
-    # constraint conflicts during repeated local runs.
-    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)

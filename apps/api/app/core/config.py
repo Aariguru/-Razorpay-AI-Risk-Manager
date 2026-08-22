@@ -12,6 +12,7 @@ class Settings(BaseModel):
     environment: str = "development"
     database_url: str = "sqlite:///./ai_risk_manager.db"
     agent_provider: str = "mock"
+    openai_api_key: str = ""
     openai_model: str = "gpt-5"
 
 
@@ -21,5 +22,6 @@ def get_settings() -> Settings:
         environment=os.getenv("APP_ENV", "development"),
         database_url=os.getenv("DATABASE_URL", "sqlite:///./ai_risk_manager.db"),
         agent_provider=os.getenv("AGENT_PROVIDER", "mock"),
+        openai_api_key=os.getenv("OPENAI_API_KEY", ""),
         openai_model=os.getenv("OPENAI_MODEL", "gpt-5"),
     )

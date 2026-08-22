@@ -2,8 +2,13 @@ services:
   api:
     build:
       context: ../apps/api
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://risk_manager:risk_manager@db:5432/risk_manager}
+      APP_ENV: ${APP_ENV:-development}
     ports:
       - "8000:8000"
+    depends_on:
+      - db
 
   web:
     build:
@@ -16,9 +21,9 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: risk_manager
-      POSTGRES_USER: risk_manager
-      POSTGRES_PASSWORD: risk_manager
+      POSTGRES_DB: ${POSTGRES_DB:-risk_manager}
+      POSTGRES_USER: ${POSTGRES_USER:-risk_manager}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-risk_manager}
     ports:
       - "5432:5432"
     volumes:

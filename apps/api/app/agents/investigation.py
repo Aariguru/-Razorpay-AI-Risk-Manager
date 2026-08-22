@@ -1,7 +1,6 @@
 """Agentic investigation workflow with whitelisted, read-only evidence tools."""
 
 import json
-import os
 from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol
 from uuid import uuid4
@@ -62,11 +61,10 @@ class OpenAIRecommendationProvider:
     name = "openai"
 
     def recommend(self, evidence: dict[str, Any]) -> AgentRecommendation:
-        if not os.getenv("OPENAI_API_KEY"):
+        settings = get_settings()
+        if not settings.openai_api_key:
             raise ValueError("OPENAI_API_KEY is required when provider is openai")
         from openai import OpenAI
-
-        settings = get_settings()
         client = OpenAI()
         response = client.responses.create(
             model=settings.openai_model,

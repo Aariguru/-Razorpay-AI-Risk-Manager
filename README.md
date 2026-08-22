@@ -40,6 +40,12 @@ npm run dev
 
 Open `http://localhost:5173`. API health and OpenAPI documentation are at `http://localhost:8000/health` and `http://localhost:8000/docs`.
 
+### Environment and CORS
+
+Copy the root `.env.example` and adjust the local values as needed. The API reads `DATABASE_URL`, `APP_ENV`, `AGENT_PROVIDER`, and `OPENAI_API_KEY` via the configuration layer. The frontend continues to use `VITE_API_BASE_URL` / `VITE_API_URL`.
+
+The backend CORS policy is intentionally limited to localhost and IPv4/IPv6 loopback origins, so Vite can move between ports like `5173`, `5174`, etc., without accepting arbitrary external origins.
+
 ### Generate safe demo data
 
 ```bash

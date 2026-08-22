@@ -6,7 +6,9 @@ from app.api.routes import router as api_router
 from app.core.config import get_settings
 from app.db.database import initialise_database
 
+
 settings = get_settings()
+
 
 app = FastAPI(
     title=settings.app_name,
@@ -17,9 +19,16 @@ app = FastAPI(
     ),
 )
 
+
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$",
+    allow_origin_regex=(
+        r"https?://"
+        r"(localhost|127\.0\.0\.1|\[::1\]|"
+        r"razorpay-ai-risk-manager-web\.onrender\.com)"
+        r"(?::\d+)?$"
+    ),
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -34,7 +43,11 @@ class HealthResponse(BaseModel):
 
 @app.get("/health", response_model=HealthResponse, tags=["health"])
 def health_check() -> HealthResponse:
-    return HealthResponse(status="ok", service="api", version=settings.app_version)
+    return HealthResponse(
+        status="ok",
+        service="api",
+        version=settings.app_version,
+    )
 
 
 app.include_router(api_router)

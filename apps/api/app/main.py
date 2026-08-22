@@ -24,16 +24,17 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=(
-        r"https?://"
-        r"(localhost|127\.0\.0\.1|\[::1\]|"
-        r"razorpay-ai-risk-manager-web\.onrender\.com)"
-        r"(?::\d+)?$"
+        r"https?://("
+        r"localhost"
+        r"|127\.0\.0\.1"
+        r"|\[::1\]"
+        r"|razorpay-ai-risk-manager-web\.onrender\.com"
+        r")(?::\d+)?$"
     ),
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
-
 
 class HealthResponse(BaseModel):
     status: str

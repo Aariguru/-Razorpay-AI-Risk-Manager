@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -20,21 +21,41 @@ app = FastAPI(
 )
 
 
-# CORS configuration
+# ---------------------------------------------------------
+# CORS CONFIGURATION
+# ---------------------------------------------------------
+
+# Explicitly allow production Vercel frontend, Render backend, and local dev
+ALLOWED_ORIGINS = [
+    "https://razorpay-ai-risk-manager.vercel.app",
+    "https://razorpay-ai-risk-manager-web.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Pattern for Vercel preview branch deployments
+DEFAULT_ORIGIN_REGEX = r"^https://(razorpay-ai-risk-manager\.vercel\.app|razorpay-ai-risk-manager-git-[A-Za-z0-9_-]+\.vercel\.app)$"
+
+# Read from Render env or fall back to default regex
+env_regex = os.getenv("ALLOW_ORIGIN_REGEX", "").strip()
+origin_regex = env_regex if env_regex else DEFAULT_ORIGIN_REGEX
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=(
-        r"https?://("
-        r"localhost"
-        r"|127\.0\.0\.1"
-        r"|\[::1\]"
-        r"|razorpay-ai-risk-manager-web\.onrender\.com"
-        r")(?::\d+)?$"
-    ),
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=origin_regex,
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+
+# ---------------------------------------------------------
+# HEALTH CHECK
+# ---------------------------------------------------------
 
 class HealthResponse(BaseModel):
     status: str
@@ -51,8 +72,16 @@ def health_check() -> HealthResponse:
     )
 
 
+# ---------------------------------------------------------
+# API ROUTES
+# ---------------------------------------------------------
+
 app.include_router(api_router)
 
+
+# ---------------------------------------------------------
+# DATABASE INITIALIZATION
+# ---------------------------------------------------------
 
 @app.on_event("startup")
 def startup() -> None:

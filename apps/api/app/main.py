@@ -19,18 +19,22 @@ app = FastAPI(
     ),
 )
 
+import os
 
-# CORS configuration
+# CORS configuration: prefer explicit production origin list when provided.
+if os.getenv("APP_ENV", "").lower() == "production":
+    # Allow explicit override via ALLOW_ORIGIN_REGEX in the environment. If not set,
+    # default to the known Vercel production host and allow Vercel preview domains.
+    allow_origin_regex = os.getenv("ALLOW_ORIGIN_REGEX")
+    if not allow_origin_regex:
+        allow_origin_regex = r"^https://(razorpay-ai-risk-manager\.vercel\.app|razorpay-ai-risk-manager-git-[A-Za-z0-9_-]+\.vercel\.app)$"
+else:
+    allow_origin_regex = r"https?://(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=(
-        r"https?://("
-        r"localhost"
-        r"|127\.0\.0\.1"
-        r"|\[::1\]"
-        r"|razorpay-ai-risk-manager-web\.onrender\.com"
-        r")(?::\d+)?$"
-    ),
+    allow_origin_regex=allow_origin_regex,
+
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
